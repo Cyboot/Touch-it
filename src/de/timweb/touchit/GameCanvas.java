@@ -1,55 +1,40 @@
 package de.timweb.touchit;
 
-import java.awt.BorderLayout;
 import java.awt.Canvas;
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.Toolkit;
 import java.awt.image.BufferStrategy;
 
-import javax.swing.JFrame;
-import javax.swing.JPanel;
+import de.timweb.touchit.util.ImageLoader;
 
 @SuppressWarnings("serial")
-public class GameEngineCanvas extends Canvas implements Runnable {
+public class GameCanvas extends Canvas implements Runnable {
 	private static final long	TARGET_DELTA	= 10;
 
-	private Game				game			= new Game();
+	private Game				game;
 
-	public static void main(String[] args) {
-		GameEngineCanvas canvas = new GameEngineCanvas();
+	public GameCanvas() {
+		setBackground(Color.black);
+		addMouseListener(InputHandler.getInstance());
+		addMouseMotionListener(InputHandler.getInstance());
 
-		JFrame frame = new JFrame("Touch it!");
-		JPanel panel = new JPanel(new BorderLayout());
-		panel.add(canvas);
-		frame.setContentPane(panel);
-		frame.setUndecorated(true);
-		frame.pack();
-		// frame.setResizable(false);
-		frame.setLocationRelativeTo(null);
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		frame.setVisible(true);
-
-		new Thread(canvas).start();
-	}
-
-	public GameEngineCanvas() {
-		Dimension dim = new Dimension(640, 480);
-		this.setPreferredSize(dim);
-		this.setMinimumSize(dim);
+		setFocusable(true);
+		ImageLoader.init();
 	}
 
 	@Override
 	public void run() {
 		long delta = 0;
+		game = new Game();
+		game.start();
 
 		while (true) {
 			long start = System.currentTimeMillis();
 
-			game.update(delta);
+			game.update((int) delta);
 
 			BufferStrategy bs = getBufferStrategy();
 			if (bs == null) {
@@ -84,13 +69,13 @@ public class GameEngineCanvas extends Canvas implements Runnable {
 				System.err.println("Antialias failed for displaying the Font");
 			}
 		}
-
-		g.setColor(Color.blue);
-		g.drawString("Test", 50, 50);
-
 		game.render(g);
 
 		g.dispose();
 		Toolkit.getDefaultToolkit().sync();
+	}
+
+	public void start() {
+		new Thread(this).start();
 	}
 }
